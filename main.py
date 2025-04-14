@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 
-from preprocessing import preprocess_data, loading_sets, scaling_and_sliding_window_reformating_X
+from preprocessing import preprocess_data, loading_sets_cv
 from test_kpca import kpca_model
 from test_pca import pca_model
 
@@ -27,9 +27,13 @@ filepath = data_dict["datasets"][index]
 data = preprocess_data(filepath)
 print("The number of anomalies in a dataset is ", sum(data['anomaly']))
 
-X_train, X_val, y_val, X_test, y_test = loading_sets(data)
+# X_train, X_val, y_val, X_test, y_test = loading_sets(data)
 
-X_train_scaled, X_val_scaled, X_test_scaled = scaling_and_sliding_window_reformating_X(X_train, X_val, X_test)
+# X_train_scaled, X_val_scaled, X_test_scaled = scaling_and_sliding_window_reformating_X(X_train, X_val, X_test)
+
+_ , test_data = loading_sets_cv(data)
+
+X_test, y_test = test_data.drop(columns=["anomaly"]).values, test_data["anomaly"].values
 
 error_scores = []
 auc_scores = []
@@ -39,7 +43,7 @@ fig, ax = plt.subplots(1,2,figsize=(10,5))
 
 ## PCA ## 
 
-x_pca, y_pca, error_scores_pca, auc_pca = pca_model(X_train_scaled, X_val_scaled, X_test_scaled, y_val, y_test)
+x_pca, y_pca, error_scores_pca, auc_pca = pca_model(data)
 error_scores.append(error_scores_pca)
 auc_scores.append(auc_pca)
 
@@ -53,7 +57,7 @@ ax[0].set_ylabel('AUC')
 
 ## KernelPCA ## 
 
-x_kpca, y_kpca, z, best_gamma, best_comp, error_scores_kpca, auc_kpca = kpca_model(X_train_scaled, X_val_scaled, X_test_scaled, y_val, y_test) 
+x_kpca, y_kpca, z, best_gamma, best_comp, error_scores_kpca, auc_kpca = kpca_model(data) 
 error_scores.append(error_scores_kpca)
 auc_scores.append(auc_kpca)
 
